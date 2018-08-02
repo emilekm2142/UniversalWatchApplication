@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.universalwatch.universalwatchapplication">
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <service  android:name=".BluetoothModule"/>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".SenderModule"  android:exported="true">
+            <intent-filter>
+                <action android:name="UniversalWatch.SendData"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".ReceiverModule"  android:exported="true">
+            <intent-filter>
+                <action android:name="UniversalWatch.ReceiveData"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".WatchInfoServer"  android:exported="true">
+            <intent-filter>
+                <action android:name="UniversalWatch.WatchInfoServer"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".StopwatchApp" android:exported="true">
+            <intent-filter>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Stopwatch"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".StylesRuntime" android:exported="true">
+            <intent-filter>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Styles_example"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".MemesApp" android:exported="true">
+            <intent-filter>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Memes"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".MockchatApp" android:exported="true">
+            <intent-filter>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Mockchat"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".NotesApplicationRuntime" android:exported="true">
+            <intent-filter>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Notes"></action>
+            </intent-filter>
+        </receiver>
+        <service android:name=".NotificationSenderModule"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>
