@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.util.Log
-import com.macroyau.blue2serial.BluetoothSerial
 import com.universalwatch.uwlib.BroadcastTypes
 import com.universalwatch.uwlib.WatchUtils
 import kotlinx.coroutines.experimental.launch
@@ -35,15 +34,15 @@ open class SenderReceiver:Service(){
             var i = Intent(context.applicationContext.packageName + SenderReceiver.INTERNAL_SENDERRECEIVER_RECEIVER_ACTION)
             val inString  = data.toString()
             i.putExtra("data",inString)
-            i.setPackage(context.applicationContext.packageName)
-            i.setFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+            i.`package` = context.applicationContext.packageName
+            i.flags = Intent.FLAG_RECEIVER_FOREGROUND
             context.sendBroadcast(i)
         }
         @JvmStatic
         private fun handToReceiverModule(context: Context, type: BroadcastTypes, data:String){
             val i = Intent("UniversalWatch.ReceiveData")
-            i.setPackage(context.packageName)
-            i.setFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+            i.`package` = context.packageName
+            i.flags = Intent.FLAG_RECEIVER_FOREGROUND
             i.putExtra("type", type.toString())
             i.putExtra("data", data)
             context.sendBroadcast(i)
@@ -56,7 +55,7 @@ open class SenderReceiver:Service(){
 
         initialize()
 
-        val recvFilter = IntentFilter(applicationContext.packageName +  INTERNAL_SENDERRECEIVER_RECEIVER_ACTION);
+        val recvFilter = IntentFilter(applicationContext.packageName + INTERNAL_SENDERRECEIVER_RECEIVER_ACTION)
         val recv = SenderReceiverInternalReceiver()
         registerReceiver(recv,recvFilter)
         super.onCreate()
@@ -118,7 +117,7 @@ open class SenderReceiver:Service(){
 
                 }else{
                     //modify the view here!
-                    val lastView = mapOfLastSentViews[packag];
+                    val lastView = mapOfLastSentViews[packag]
                     //now update
                     //TODO screenUpdates
                 }
@@ -127,21 +126,16 @@ open class SenderReceiver:Service(){
             if (Cache.watchInfo != null && type!=BroadcastTypes.RESOURCE_REQUEST) {
 
 
-                if (Cache.watchInfo!!.dataTransferMode == "json") {
-                    convertAllURIsFromJSONObjectToBase64EncodedImages(applicationContext, j)
+                when (Cache.watchInfo!!.dataTransferMode) {
+                    "json" -> {
+                        convertAllURIsFromJSONObjectToBase64EncodedImages(applicationContext, j)
                     //To avoid escaping Base64, yes it has to be unescaped twice
                     val stringToSend = Unescaper.unescapeString(Unescaper.unescapeString(j.toString()))
                     sendRawData(stringToSend)
-                } else {
-                    //messagePack...
-                    //TODO CONVERT IMAGES
-                    //packer.close()
-                    //packer.toByteArray
-
-                    //to konwertuje obrazki odrazu
-                   // val packer = JsonMessagePack.convert(applicationContext,j)
-
-
+                }
+                    "flatbuffers" -> {
+//                        sendRawData()
+                    }
                 }
             }
             else{
@@ -205,7 +199,7 @@ open class SenderReceiver:Service(){
 
 
 
-            sendSignal(type, p1!!.`package`, JSONObject(p1!!.getStringExtra("data")))
+            sendSignal(type, p1.`package`, JSONObject(p1.getStringExtra("data")))
 
         }
     }

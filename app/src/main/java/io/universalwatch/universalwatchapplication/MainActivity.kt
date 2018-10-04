@@ -1,30 +1,15 @@
 package io.universalwatch.universalwatchapplication
-
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.UserManager
-import android.support.design.widget.Snackbar
+import android.os.StrictMode
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
+import android.widget.CompoundButton
+import android.widget.Switch
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import android.os.StrictMode
-import android.util.Log
-import android.view.View
-import android.widget.Switch
-import com.universalwatch.uwlib.Watch
-import com.universalwatch.uwlib.WatchUtils
-import com.universalwatch.uwlib.*
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.runBlocking
-import org.json.JSONObject
-import android.widget.CompoundButton
-
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         launch {
             delay(2000)
+
           //  SingletonStopwatch.getApplication(applicationContext)!!.install(applicationContext)
            // delay(100)
            // Mockchat.createApplication(applicationContext)!!.install(applicationContext)
@@ -60,7 +46,7 @@ class MainActivity : AppCompatActivity() {
            // Memes.getApplication(applicationContext)!!.install(applicationContext)
            // delay(100)
             //StylesApplications.getApplication(applicationContext)!!.install(applicationContext)
-            WykopClientApp.getApplication(applicationContext)
+            //   WykopClientApp.getApplication(applicationContext)
         }
 
 
@@ -81,8 +67,8 @@ class MainActivity : AppCompatActivity() {
             titles!!.add("New note")
             content!!.add("xd")
 
-            tinyDb.putListString("notes_titles", titles!!)
-            tinyDb.putListString("notes_contents", content!!)
+            tinyDb.putListString("notes_titles", titles)
+            tinyDb.putListString("notes_contents", content)
         }
 
 
