@@ -1,5 +1,6 @@
 package io.universalwatch.universalwatchapplication
 
+import AllWatchSerialize.*
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -11,10 +12,15 @@ import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import com.universalwatch.uwlib.BroadcastTypes
+import com.universalwatch.uwlib.Requirements
+import com.universalwatch.uwlib.WatchInfo
 import com.universalwatch.uwlib.WatchUtils
 import kotlinx.coroutines.experimental.launch
 import org.json.JSONObject
+import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.nio.ByteBuffer
 
 /**
  * Created by emile on 24.05.2018.
@@ -89,6 +95,8 @@ open class SenderReceiver:Service(){
     }
 
     open fun sendRawData(data: ByteArray) {
+        Log.d("length", data.size.toString())
+        Log.d("length", data.size.toString())
 
     }
 
@@ -96,6 +104,13 @@ open class SenderReceiver:Service(){
 
     }
     protected fun sendSignal(type:BroadcastTypes, packag:String, j:JSONObject){
+        var cache = Cache.watchInfo
+        //when cache is null, then connection was not established yet. For debug, lets make a cache here.
+        if (cache == null) {
+            cache = WatchInfo("xd", "xd", mutableListOf(Requirements.templates), "sdasda", "asfasff", false, 1111111, "flatbuffers", true)
+        }
+
+
         Log.d("sent",j.toString())
         launch {
 
@@ -113,7 +128,7 @@ open class SenderReceiver:Service(){
 
 
             if (j.getString("type") == "updateView"){
-                if (Cache.watchInfo!!.screenUpdates){
+                if (cache!!.screenUpdates) {
 
                 }else{
                     //modify the view here!
@@ -123,10 +138,10 @@ open class SenderReceiver:Service(){
                 }
             }
             //calculation heavy!
-            if (Cache.watchInfo != null && type!=BroadcastTypes.RESOURCE_REQUEST) {
+            if (cache != null && type != BroadcastTypes.RESOURCE_REQUEST) {
+                Log.d("as", "asss")
 
-
-                when (Cache.watchInfo!!.dataTransferMode) {
+                when (cache!!.dataTransferMode) {
                     "json" -> {
                         convertAllURIsFromJSONObjectToBase64EncodedImages(applicationContext, j)
                     //To avoid escaping Base64, yes it has to be unescaped twice
@@ -134,14 +149,33 @@ open class SenderReceiver:Service(){
                     sendRawData(stringToSend)
                 }
                     "flatbuffers" -> {
-//                        sendRawData()
+                        val Translator = FlatBuilder(applicationContext)
+                        val buffer = Translator.translate(j)
+                        val bb: ByteBuffer = ByteBuffer.wrap(buffer.sizedByteArray())
+                        sendRawData(buffer.sizedByteArray())
+                        //temp
+                        fun writeToFile(data: ByteArray, fileName: String) {
+
+                            val out = FileOutputStream(File.createTempFile("axd", "xd"))
+                            out.write(data)
+                            out.close()
+                        }
+
+                        val serialized = buffer.dataBuffer().array()
+
+                        Log.d("a", serialized.size.toString())
+
+                        val new = Command.getRootAsCommand(bb)
+                        Log.d("d", new.id().packageName())
+                        Log.d("asas", "asdas")
                     }
                 }
             }
             else{
                 //handshake not exchanged yet. This message is a handshake request. Always send in JSON
-                val stringToSend = Unescaper.unescapeString(Unescaper.unescapeString(j.toString()))
-                sendRawData(stringToSend)
+                val Translator = FlatBuilder(applicationContext)
+                val buffer = Translator.translate(j)
+                sendRawData(buffer.dataBuffer().array())
             }
         }
 
@@ -182,11 +216,69 @@ open class SenderReceiver:Service(){
 
     }
     fun onMessage( message:ByteArray){
-        //received from watch
-        //TODO CONVERT BYTEARRAY TO JSON
-       // var JSONmsg = JSONObject(message)
-       // _onMessage(JSONmsg)
+        val r = mutableMapOf<String, String>()
+        fun deserializeExtras(msg: Action): MutableMap<String, String> {
+            Log.d("d", msg.extrasLength().toString())
+            for (i in (0..msg.extrasLength() - 1)) {
+                val extra = msg.extras(i)
+                r.put(extra.key(), extra.value())
+            }
+            return r
+        }
 
+        Log.d("asdasfd", "asdas")
+        val d = Command.getRootAsCommand(ByteBuffer.wrap(message))
+        Log.d("as", d.id().friendlyName())
+        Log.d("as", d.id().packageName())
+        val map = mapOf(CommandType.Back to BroadcastTypes.SYSTEM_ACTION, CommandType.Action to BroadcastTypes.ACTION, CommandType.Handshake to BroadcastTypes.HANDSHAKE, CommandType.Open to BroadcastTypes.APPLICATION_OPEN)
+        val broadcastType = map[d.commandType()]
+        var toHandle = JSONObject()
+        when (broadcastType) {
+            BroadcastTypes.ACTION -> {
+                val actionData = d.command(Action()) as Action
+                toHandle = JSONObject("""
+                     {
+                     "type":"action",
+                     "targetPackage":"${d.id().packageName()}",
+                     "friendlyName":"${d.id().friendlyName()}",
+                     "data":{
+                        "callbackName":"${actionData.callback()}",
+                        "extras":${deserializeExtras(actionData).toString().replace("=", ":")}
+                     }
+                     }
+                """.trimIndent())
+            }
+            BroadcastTypes.APPLICATION_OPEN -> {
+                val openData = d.command(Open()) as Open
+                toHandle = JSONObject("""
+                    {"type":"initialViewRequest",
+                    "targetPackage":"${d.id().packageName()}",
+                     "friendlyName":"${d.id().friendlyName()}",
+                     "data":{
+                        "package":"${d.id().packageName()}",
+                     "friendlyName":"${d.id().friendlyName()}"
+                     }
+                     }
+                """.trimIndent())
+            }
+        //TODO: not only back
+            BroadcastTypes.SYSTEM_ACTION -> {
+                val backData = d.command(Back()) as Back
+                toHandle = JSONObject("""
+                    {"type":"systemAction",
+                    "targetPackage":"${d.id().packageName()}",
+                     "friendlyName":"${d.id().friendlyName()}",
+                     "data":{
+                        "actionName":"back"
+
+                     }
+                     }
+                """.trimIndent())
+            }
+        }
+
+
+        handToReceiverModule(applicationContext, broadcastType!!, toHandle.toString())
     }
 
 
@@ -195,8 +287,10 @@ open class SenderReceiver:Service(){
             //hand it to the function
             //TODO: check if works
 
-            val type = BroadcastTypes.valueOf(p1!!.getStringExtra("type"))
+            val stringName = JSONObject(p1!!.getStringExtra("data")).getString("type")
+            val type = BroadcastTypes.toBroadcastTypeFromString(stringName)!!
 
+            Log.d("iu", "yutuy")
 
 
             sendSignal(type, p1.`package`, JSONObject(p1.getStringExtra("data")))

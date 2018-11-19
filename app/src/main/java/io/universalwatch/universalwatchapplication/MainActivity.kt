@@ -5,6 +5,7 @@ import android.os.StrictMode
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.Switch
 import kotlinx.android.synthetic.main.activity_main.*
@@ -14,6 +15,7 @@ import kotlinx.coroutines.experimental.launch
 
 class MainActivity : AppCompatActivity() {
     lateinit var switch: Switch
+    lateinit var button: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,9 +23,35 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         //starting bluetooth
         switch = findViewById(R.id.useStyling)
+        button = findViewById(R.id.connect)
+        button.setOnClickListener {
+            val app = MessagingApp.getApplication(applicationContext).install(applicationContext)
+            MessagingApp.displayList(applicationContext)
+            MockchatApp.getApplication(applicationContext).install(applicationContext)
+            StylesApplications.getApplication(applicationContext).install(applicationContext)
+
+//            val test_app = WykopClientApp.getApplication(applicationContext)
+//            test_app.install(applicationContext)
+//            val commonClickHandler = {e: IncomingExtras ->Log.d("xd", "xd")}
+//            val list = mutableListOf(
+//                    ListEntry(ListItemType.WithIcon, mutableListOf("Andrew Kramer", "2 messages"), mainAction = Action( { e->commonClickHandler.invoke(e)}, "Tap", """{"name":"xd"}""")  )
+//            )
+//            val initialView = ListView("Conversations", list, clickable = true, onBack = {context,s->test_app.close(context)})
+//
+//
+//            test_app.onOpen = {context, o ->
+//               test_app.showView(context, initialView)
+//            }
+//            test_app.showView(applicationContext, initialView)
+            // test_app.showView(applicationContext, TextView("aaa", "text", "some" ), false,false)
+
+            // val stopwatch = SingletonStopwatch.getApplication(applicationContext)!!
+//            stopwatch.install(applicationContext)
+//            SingletonStopwatch.forceDisplay(applicationContext)
+        }
         switch.setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
-            SingletonStopwatch.useStyling=switch.isChecked
-            SingletonStopwatch.forceRecreation(applicationContext)
+            //            SingletonStopwatch.useStyling=switch.isChecked
+//            SingletonStopwatch.forceRecreation(applicationContext)
 
         })
         val intent = Intent(applicationContext, BluetoothModule::class.java)
@@ -37,7 +65,7 @@ class MainActivity : AppCompatActivity() {
         launch {
             delay(2000)
 
-          //  SingletonStopwatch.getApplication(applicationContext)!!.install(applicationContext)
+            // SingletonStopwatch.getApplication(applicationContext)!!.install(applicationContext)
            // delay(100)
            // Mockchat.createApplication(applicationContext)!!.install(applicationContext)
            // delay(100)

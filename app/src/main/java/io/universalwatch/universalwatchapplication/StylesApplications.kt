@@ -5,12 +5,9 @@ import android.net.Uri
 import com.universalwatch.uwlib.*
 import org.json.JSONObject
 
-/**
- * Created by emile on 11.05.2018.
- */
 object StylesApplications:ApplicationSingleton(){
-    override fun createApplication(context: Context) {
-        app = Application(context, "Styles example", mutableListOf(Requirements.templates), Uri.parse("ikonastyles-min.jpg"))
+    override fun createApplication(context: Context): Application {
+        val app = Application(context, "Styles example", mutableListOf(Requirements.templates), Uri.parse("stylesIcon.jpg"))
         val styledText = TextView("styled", "this", "is styled", mutableListOf(), template = JSONObject("""
 
         {
@@ -21,11 +18,12 @@ object StylesApplications:ApplicationSingleton(){
             "x": 0,
             "y": 0,
             "content":[
-            {"type":"rectangle",
+            {
+            "type":"rectangle",
             "VAlign":"center",
             "width":0.9,
             "HAlign":"center",
-            "color":"#16a085",
+            "color":"#2ecc71",
             "content":[
                 {
                 "type":"verticalLayout",
@@ -50,12 +48,13 @@ object StylesApplications:ApplicationSingleton(){
     }
 
 
-        """.trimIndent()), onBack = {context, s -> app!!.close(context) })
-        app!!.onOpen = {context, jsonObject -> app!!.showView(context, styledText) }
+        """.trimIndent()), onBack = { context, s -> app.close(context) })
+        app.onOpen = { context, jsonObject -> app.showView(context, styledText) }
+        return app
     }
 }
 class StylesRuntime:ApplicationRuntime(){
     override fun makeApplication(context: Context): Application {
-        return StylesApplications.getApplication(context);
+        return StylesApplications.getApplication(context)
     }
 }

@@ -1,91 +1,78 @@
 package io.universalwatch.universalwatchapplication
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import com.universalwatch.uwlib.*
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import org.json.JSONObject
 
-/**
- * Created by emile on 23.04.2018.
- */
-object Mockchat{
-    var wasInitialized=false
-    var app: Application?=null
+object MockchatApp : ApplicationSingleton() {
+    lateinit var friendsListView: ListView
+    var shouldCount = true
+    lateinit var showCallback: (IncomingExtras) -> Unit
+    override fun createApplication(context: Context): Application? {
+        MessagingAppDataService.make()
 
-    var mockTimerStart =15;
+        val app = Application(context, "Mockchat", listOf(Requirements.unicode, Requirements.images, Requirements.color), Uri.parse("mockchatLogo.jpg"))
+        friendsListView = ListView("Messages from friends", mutableListOf())
+        //making list view:
+        showCallback = fun(extras: IncomingExtras) {
+            val message = MockchatAppDataService.getMessages()[Integer.parseInt(extras.extras.getString("id"))]
 
-    var count = false
-    fun createApplication(context: Context):Application{
-        if (!Mockchat.wasInitialized) {
-            val requirements = mutableListOf(Requirements.color, Requirements.images, Requirements.templates)
-            Mockchat.app = Application(context, "Mockchat", requirements)
+            val imageView = TextView("Image", "", "")
+            imageView.imageUri = message.image
+            imageView.progress = 1.0
+            imageView.systemCallbacks.onBack = { c, s -> app.showView(context, friendsListView); shouldCount = false }
+            app.showView(context, imageView)
 
-            //overriding default!
-            Mockchat.app?.let {
-                //make app here
-                Mockchat.wasInitialized = true
-
-                //an initial view with mocks
-                val mocks = mutableListOf("John", "Ann", "Anton")
-                val images = mutableListOf(
-                        Uri.parse("/assets/im1.jpg"),
-                        Uri.parse("/assets/im2.jpg"),
-                        Uri.parse("/assets/im3.jpg")
-                )
-
-                val mocksList = ListView("mockslist", simpleElements = mocks  )
-
-                mocksList.onClick = {context, id, extras ->
-                    val selectedMock = mocks[id]
-                    val image = images[id]
-                    val actions = mutableListOf<Action>()
-
-                    val imageView = TextView(
-                            "mock",
-                            mockTimerStart.toString(),
-                            "",
-                            imageUri = image,
-                            onBack = {c,s->Mockchat.app?.showView(c,mocksList); count=false},
-                            progress=1.0,
-                            style = TextView.Companion.Layouts.TO_BOTTOM)
-                    Mockchat.app?.showView(context, imageView)
-                    launch {
-                        count=true
-                        delay(1000)
-
-                        var mockTimer:Double = mockTimerStart.toDouble();
-                        while (mockTimer > 0 && count){
-                            delay(200)
-                            mockTimer-=0.2
-                            Mockchat.app?.updateView(context,"mock", JSONObject("""{"significant":${mockTimer.toString()}, "progress":${mockTimer/mockTimerStart.toDouble()}}"""))
-                        }
-                        count=false
-                        Mockchat.app?.showView(context, mocksList)
+            launch {
+                imageView.progress?.let {
+                    while (imageView.progress!! > 0 && shouldCount) {
+                        delay(100)
+                        imageView.progress = imageView.progress!! - 0.01
+                        app.updateView(context, imageView)
                     }
-
-                    mocks.removeAt(id)
-                    images.removeAt(id)
+                    MockchatAppDataService.removeMessageBySender(message.sender)
+                    friendsListView.elements = fillFriendsList(showCallback)
+                    app.showView(context, friendsListView)
 
                 }
-                Mockchat.app?.initialView = mocksList
-                mocksList.systemCallbacks.onBack = {c,s->
-                    count=false
-                    Mockchat.app?.close(c)
-                }
-
-
             }
-        }
-        return app!!
 
+
+        }
+        // ListEntry(ListItemType.WithIcon, mutableListOf("Ania", "2 new messages"), Uri.parse("aniaAvatar.jpg"), Action(conversationCallback,"open", """{"conversationId":"${id}"}""" ) )
+        //populating list of friends
+
+        friendsListView.elements = fillFriendsList(showCallback)
+        app.onOpen = { c, s ->
+            app.showView(c, friendsListView)
+        }
+        return app
+    }
+
+    fun displayList(context: Context) {
+        getApplication(context).showView(context, friendsListView)
+    }
+
+    fun fillFriendsList(callback: (IncomingExtras) -> Unit): MutableList<ListEntry> {
+        val listEntries = mutableListOf<ListEntry>()
+        for ((i, friend) in MockchatAppDataService.getMessages().withIndex()) {
+            listEntries.add(
+                    ListEntry(
+                            ListItemType.Text,
+                            mutableListOf(friend.sender),
+                            null,
+                            Action(callback, "open", """{"id":"${i}"}""")
+                    )
+            )
+        }
+        return listEntries
     }
 }
-class MockchatApp:ApplicationRuntime(){
+
+class MockchatRuntime : ApplicationRuntime() {
     override fun makeApplication(context: Context): Application {
-        return Mockchat.createApplication(context)
+        return MockchatApp.getApplication(context)
     }
 }

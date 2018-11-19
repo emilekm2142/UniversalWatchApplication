@@ -43,31 +43,49 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".StopwatchApp" android:exported="true">
+
+        <receiver
+            android:name=".MessagingRuntime"
+            android:exported="true">
             <intent-filter>
-                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Stopwatch"></action>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Messaging"></action>
             </intent-filter>
         </receiver>
-        <receiver android:name=".StylesRuntime" android:exported="true">
-            <intent-filter>
-                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Styles_example"></action>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MemesApp" android:exported="true">
-            <intent-filter>
-                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Memes"></action>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".MockchatApp" android:exported="true">
+
+        <receiver
+            android:name=".MockchatRuntime"
+            android:exported="true">
             <intent-filter>
                 <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Mockchat"></action>
             </intent-filter>
         </receiver>
-        <receiver android:name=".NotesApplicationRuntime" android:exported="true">
+        <!--<receiver android:name=".StopwatchApp" android:exported="true">-->
+        <!--<intent-filter>-->
+        <!--<action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Stopwatch"></action>-->
+        <!--</intent-filter>-->
+        <!--</receiver>-->
+        <receiver
+            android:name=".StylesRuntime"
+            android:exported="true">
             <intent-filter>
-                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Notes"></action>
+                <action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Styles_example"></action>
             </intent-filter>
         </receiver>
+        <!--<receiver android:name=".MemesApp" android:exported="true">-->
+        <!--<intent-filter>-->
+        <!--<action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Memes"></action>-->
+        <!--</intent-filter>-->
+        <!--</receiver>-->
+        <!--<receiver android:name=".MockchatApp" android:exported="true">-->
+        <!--<intent-filter>-->
+        <!--<action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Mockchat"></action>-->
+        <!--</intent-filter>-->
+        <!--</receiver>-->
+        <!--<receiver android:name=".NotesApplicationRuntime" android:exported="true">-->
+        <!--<intent-filter>-->
+        <!--<action android:name="io.universalwatch.universalwatchapplication.UniversalWatch.Notes"></action>-->
+        <!--</intent-filter>-->
+        <!--</receiver>-->
         <service android:name=".NotificationSenderModule"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>

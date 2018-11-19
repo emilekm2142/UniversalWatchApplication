@@ -1,34 +1,12 @@
 package io.universalwatch.universalwatchapplication
 
-import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
+import android.bluetooth.BluetoothDevice
 import android.content.IntentFilter
-import android.os.IBinder
-import android.util.Log
-
-import com.macroyau.blue2serial.BluetoothDeviceListDialog
-import com.universalwatch.uwlib.Application
-import com.universalwatch.uwlib.BroadcastTypes
-import kotlinx.coroutines.experimental.launch
-import org.json.JSONObject
-import org.msgpack.core.MessagePack
 import com.macroyau.blue2serial.BluetoothSerial
 import com.macroyau.blue2serial.BluetoothSerialListener
 
-import android.support.v4.app.ActivityCompat.invalidateOptionsMenu
-import android.support.v4.app.ActivityCompat.invalidateOptionsMenu
-import android.support.v4.app.ActivityCompat.startActivityForResult
-import android.bluetooth.BluetoothAdapter
-import android.content.DialogInterface
-
-import android.bluetooth.BluetoothDevice
-import android.app.PendingIntent
-import android.support.v4.app.NotificationCompat
-
 private val DEBUG_MODE = false
-private val USE_BT = false
+private val USE_BT = true
 
 
 class BluetoothModule:SenderReceiver(), BluetoothSerialListener{
@@ -42,7 +20,7 @@ class BluetoothModule:SenderReceiver(), BluetoothSerialListener{
 
 
             if (DEBUG_MODE) {
-                val debugRecvFilter = IntentFilter(DEBUG_MODE_BT_RECV_ACTION);
+                val debugRecvFilter = IntentFilter(DEBUG_MODE_BT_RECV_ACTION)
                 val debugRecv = DEBUG_BLUETOOTH_RECEIVER()
                 registerReceiver(debugRecv, debugRecvFilter)
             }
@@ -60,7 +38,7 @@ class BluetoothModule:SenderReceiver(), BluetoothSerialListener{
 
     fun requestHandshake(){
 
-       sendSignal(BroadcastTypes.HANDSHAKE, packageName, JSONObject("""{"type":"handshake", "data":{}}"""))
+        // sendSignal(BroadcastTypes.HANDSHAKE, packageName, JSONObject("""{"type":"handshake", "data":{}}"""))
     }
 
     override fun sendRawData(string: String) {
@@ -69,8 +47,11 @@ class BluetoothModule:SenderReceiver(), BluetoothSerialListener{
     }
 
     override fun sendRawData(data: ByteArray) {
-        if (USE_BT)
-        bluetoothSerial!!.write(data)
+        if (USE_BT) {
+            bluetoothSerial!!.write(data.size.toString(), true)
+            bluetoothSerial!!.write(data)
+
+        }
     }
 
 
@@ -84,8 +65,9 @@ class BluetoothModule:SenderReceiver(), BluetoothSerialListener{
 
     override fun onBluetoothSerialRead(message: String) {
         // Print the incoming message on the terminal screen
-        onReceive(message)
+        onReceive(message.toByteArray())
     }
+
 
     override fun onConnectingBluetoothDevice() {
 
